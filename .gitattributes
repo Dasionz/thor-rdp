@@ -1,0 +1,6 @@
+bVNC/src/main/res/values*/** merge=union
+
+# Keep scripts usable when checking out or extracting source on Linux/WSL.
+*.sh text eol=lf
+gradlew text eol=lf
+remoteClientLib/jni/libs/build-deps.conf text eol=lf
