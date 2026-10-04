@@ -3,6 +3,7 @@ package com.iiordanov.bVNC.thor;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -35,6 +36,7 @@ public final class ThorInputController implements AutoCloseable {
 
     private final Sink sink;
     private final SharedPreferences preferences;
+    private final AudioManager audioManager;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Set<Integer> pressedKeys = new HashSet<>();
     private final Set<Integer> pressedButtons = new HashSet<>();
@@ -51,6 +53,7 @@ public final class ThorInputController implements AutoCloseable {
     public ThorInputController(Context context, Sink sink) {
         this.sink = sink;
         preferences = context.getSharedPreferences("thor_input", Context.MODE_PRIVATE);
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         buttonsSwapped = preferences.getBoolean("swap_ab", false);
     }
 
@@ -107,6 +110,16 @@ public final class ThorInputController implements AutoCloseable {
 
     public boolean handleKeyEvent(KeyEvent event) {
         int code = event.getKeyCode();
+        // Keep the handheld's volume buttons local, including while RDP is connecting.
+        // The inherited remote pointer handler otherwise converts these keys to wheel events.
+        if (code == KeyEvent.KEYCODE_VOLUME_UP || code == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && audioManager != null) {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        code == KeyEvent.KEYCODE_VOLUME_UP ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER,
+                        AudioManager.FLAG_SHOW_UI);
+            }
+            return true; // Consume key-up too; each down/repeat changes volume exactly once.
+        }
         boolean gamepad = (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
                 || (event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
         if (!gamepad && event.getDevice() != null) {

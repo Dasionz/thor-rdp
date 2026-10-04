@@ -80,6 +80,12 @@ public final class ThorInputDeck implements AutoCloseable {
         candidates.sort(Comparator.comparingInt(ThorInputDeck::displayRank).thenComparingLong(ThorInputDeck::displayArea));
         for (Display display : candidates) {
             Presentation next = new Presentation(activity, display) {
+                @Override public boolean dispatchKeyEvent(KeyEvent event) {
+                    // Normally the owner gets keys because this window is not focusable.
+                    // Also handle OEMs that route handheld buttons to the touched display.
+                    return controller.handleKeyEvent(event) || super.dispatchKeyEvent(event);
+                }
+
                 @Override protected void onCreate(Bundle state) {
                     super.onCreate(state);
                     Window window = getWindow();
@@ -267,7 +273,7 @@ public final class ThorInputDeck implements AutoCloseable {
                 });
                 key.setOnClickListener(v -> { /* Input is paired explicitly on touch down/up. */ });
             }
-            float weight = code == KeyEvent.KEYCODE_SPACE ? 3.4f : labels[i].length() > 2 ? 1.4f : 1f;
+            float weight = code == KeyEvent.KEYCODE_SPACE ? 4.8f : labels[i].length() > 2 ? 1.4f : 1f;
             addWeighted(row, key, weight);
         }
         parent.addView(row, new LinearLayout.LayoutParams(-1, 0, 1));

@@ -27,6 +27,28 @@ The application ID is `dev.thor.freerdp`; retaining the same signing key is requ
 for later upgrades. Outputs include arm64-v8a for Thor, x86_64 for an emulator,
 and a universal APK under `freeaRDP-app/build/outputs/apk/`.
 
+## Input and audio regression tests
+
+The `freeaRDP-app/src/androidTest/` suite covers physical deck key events versus
+Android IME Unicode, local media volume versus right-stick scroll, and the real
+SQLCipher audio migration from database version 641 to 642. It uses the platform
+instrumentation runner and isolated temporary databases. Volume is restored after
+testing. Use a disposable emulator with adjustable media volume.
+
+After preparing the same JDK/SDK/Gradle environment as the build script:
+
+```powershell
+./gradlew.bat :freeaRDP-app:assembleDebug :freeaRDP-app:assembleDebugAndroidTest --no-daemon
+# Install the matching debug x86_64 APK and test APK on your disposable emulator.
+adb -s YOUR_EMULATOR install -r freeaRDP-app/build/outputs/apk/debug/freeaRDP-app-x86_64-debug.apk
+adb -s YOUR_EMULATOR install -r freeaRDP-app/build/outputs/apk/androidTest/debug/freeaRDP-app-debug-androidTest.apk
+adb -s YOUR_EMULATOR shell am instrument -w -e class com.iiordanov.bVNC.ThorInputRegressionTest,com.iiordanov.bVNC.RdpAudioMigrationTest dev.thor.freerdp.test/android.test.InstrumentationTestRunner
+```
+
+For release QA, sign the release target and test APK with the same key before
+installing. A debug APK cannot replace a release APK signed with a different key.
+These tests do not replace a live RDP audio/input check or Windows EVKey testing.
+
 ## Native backend provenance
 
 The preview uses publisher-provided dependency archive version 17 from:

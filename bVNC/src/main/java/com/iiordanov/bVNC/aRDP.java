@@ -129,7 +129,7 @@ public class aRDP extends MainConfiguration {
         });
         groupRemoteSoundType = findViewById(R.id.groupRemoteSoundType);
         groupRemoteSoundType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked && Utils.isFree(aRDP.this) && checkedId != R.id.radioRemoteSoundDisabled) {
+            if (isChecked && isAudioPlaybackRestricted() && checkedId != R.id.radioRemoteSoundDisabled) {
                 setRemoteSoundTypeFromSelected(Constants.REMOTE_SOUND_DISABLED);
                 IntroTextDialog.showIntroTextIfNecessary(aRDP.this, database, true, true);
             }
@@ -333,9 +333,15 @@ public class aRDP extends MainConfiguration {
      * Automatically linked with android:onClick in the layout.
      */
     public void remoteSoundTypeToggled(View view) {
-        if (Utils.isFree(this)) {
+        if (isAudioPlaybackRestricted()) {
             IntroTextDialog.showIntroTextIfNecessary(this, database, true, true);
         }
+    }
+
+    private boolean isAudioPlaybackRestricted() {
+        // Thor's package contains "free", but its RDP audio is available without
+        // the upstream free-edition restriction. Keep other flavors unchanged.
+        return !getPackageName().equals("dev.thor.freerdp") && Utils.isFree(this);
     }
 
     /**
@@ -355,7 +361,7 @@ public class aRDP extends MainConfiguration {
 
     public void setRemoteSoundTypeFromSelected(int type) {
         int typeToSet = type;
-        if (Utils.isFree(this)) {
+        if (isAudioPlaybackRestricted()) {
             typeToSet = Constants.REMOTE_SOUND_DISABLED;
         }
 

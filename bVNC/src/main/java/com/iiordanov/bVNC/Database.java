@@ -133,13 +133,15 @@ public class Database extends SQLiteOpenHelper {
     static final int DBV_2_2_4 = 640;
     static final int DBV_2_2_5 = 641;
     static final int CURRVERS = DBV_2_2_5;
+    static final int DBV_THOR_0_1_1 = 642;
     private static final String dbName = "VncDatabase";
     private static String password = "";
 
     private final Context context;
 
     public Database(Context context) {
-        super(context, dbName, null, CURRVERS);
+        super(context, dbName, null,
+                context.getPackageName().equals("dev.thor.freerdp") ? DBV_THOR_0_1_1 : CURRVERS);
         this.context = context;
         SQLiteDatabase.loadLibs(context);
     }
@@ -592,6 +594,20 @@ public class Database extends SQLiteOpenHelper {
             db.execSQL("ALTER TABLE " + AbstractConnectionBean.GEN_TABLE_NAME + " ADD COLUMN "
                     + AbstractConnectionBean.GEN_FIELD_KEEPSVNCPASSPHRASE + " BOOLEAN DEFAULT TRUE");
             oldVersion = DBV_2_2_5;
+        }
+        if (oldVersion == DBV_2_2_5 && newVersion >= DBV_THOR_0_1_1
+                && context.getPackageName().equals("dev.thor.freerdp")) {
+            // Thor 0.1.0's setup screen forced sound off because its package
+            // name matched the upstream free-edition gate. Repair those saved
+            // values once, including the default connection template. Existing
+            // server/device choices remain intact. SQLiteOpenHelper commits the
+            // new database version with this update, so later user-selected
+            // Disabled settings are never reset on subsequent opens.
+            ContentValues audio = new ContentValues();
+            audio.put(AbstractConnectionBean.GEN_FIELD_REMOTESOUNDTYPE, Constants.REMOTE_SOUND_ON_DEVICE);
+            db.update(AbstractConnectionBean.GEN_TABLE_NAME, audio,
+                    AbstractConnectionBean.GEN_FIELD_REMOTESOUNDTYPE + " = ?",
+                    new String[]{Integer.toString(Constants.REMOTE_SOUND_DISABLED)});
         }
     }
 

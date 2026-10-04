@@ -14,11 +14,12 @@ android {
 
     defaultConfig {
         applicationId 'dev.thor.freerdp'
-        versionCode 1
-        versionName '0.1.0-thor'
+        versionCode 2
+        versionName '0.1.1-thor'
         targetSdkVersion targetApi
         minSdkVersion project.getProperties().get("SDK_VERSION")
         multiDexEnabled true
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
     }
 
     splits {
@@ -62,4 +63,13 @@ dependencies {
     api 'com.android.support:multidex:1.0.3'
     implementation project(':bVNC')
     implementation project(':pubkeyGenerator')
+    // Legacy platform runner is test-only; Android 36 keeps its compile stubs
+    // in optional jars instead of android.jar.
+    androidTestCompileOnly files("${android.sdkDirectory}/platforms/android-${compileApi}/optional/android.test.runner.jar")
+    androidTestCompileOnly files("${android.sdkDirectory}/platforms/android-${compileApi}/optional/android.test.base.jar")
+    androidTestImplementation(name: 'android-database-sqlcipher-4.5.4', ext: 'aar')
+    // These implementation dependencies are not exported by bVNC's API surface.
+    androidTestImplementation project(':remoteClientLib')
+    androidTestImplementation project(':common')
+    androidTestImplementation 'androidx.sqlite:sqlite:2.2.0'
 }

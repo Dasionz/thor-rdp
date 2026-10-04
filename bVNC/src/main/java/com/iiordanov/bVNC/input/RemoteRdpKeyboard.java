@@ -16,6 +16,7 @@ import com.undatech.opaque.input.RemotePointer;
 public class RemoteRdpKeyboard extends RemoteKeyboard {
     private final static String TAG = "RemoteRdpKeyboard";
     protected RdpKeyboardMapper keyboardMapper;
+    private final RdpKeyboardMapper deckKeyboardMapper;
     protected Viewable canvas;
     protected InputCarriable remoteInput;
     private RdpCommunicator rdpcomm;
@@ -31,6 +32,13 @@ public class RemoteRdpKeyboard extends RemoteKeyboard {
         keyboardMapper = new RdpKeyboardMapper(preferSendingUnicode, debugLog);
         keyboardMapper.init(context);
         keyboardMapper.reset((RdpKeyboardMapper.KeyProcessingListener) r);
+        // The deck represents physical PC keys. Sending Unicode here bypasses host
+        // keyboard hooks used by input methods such as EVKey/Telex. Keep the user's
+        // Unicode preference for Android IME input, but use virtual keys for the deck
+        // (FreeRDP converts those to RDP scancodes).
+        deckKeyboardMapper = new RdpKeyboardMapper(false, debugLog);
+        deckKeyboardMapper.init(context);
+        deckKeyboardMapper.reset((RdpKeyboardMapper.KeyProcessingListener) r);
     }
 
     public boolean processLocalKeyEvent(int keyCode, KeyEvent evt, int additionalMetaState) {
@@ -43,6 +51,7 @@ public class RemoteRdpKeyboard extends RemoteKeyboard {
     }
 
     private boolean processKeyEvent(int keyCode, KeyEvent evt, int additionalMetaState, boolean fromDeck) {
+        RdpKeyboardMapper mapper = fromDeck ? deckKeyboardMapper : keyboardMapper;
         debugLog(App.debugLog, TAG, "processLocalKeyEvent: " + evt.toString() + " " + keyCode);
         // Drop repeated modifiers
         if (!fromDeck && shouldDropModifierKeys(evt))
@@ -84,13 +93,13 @@ public class RemoteRdpKeyboard extends RemoteKeyboard {
                     int numchars = s.length();
                     for (int i = 0; i < numchars; i++) {
                         KeyEvent event = new KeyEvent(evt.getEventTime(), s.substring(i, i + 1), KeyCharacterMap.FULL, 0);
-                        keyboardMapper.processAndroidKeyEvent(event, isRepeat);
+                        mapper.processAndroidKeyEvent(event, isRepeat);
                     }
                 }
                 return true;
             } else {
                 // Send the key to be processed through the KeyboardMapper.
-                return keyboardMapper.processAndroidKeyEvent(evt, isRepeat);
+                return mapper.processAndroidKeyEvent(evt, isRepeat);
             }
         } else {
             return false;

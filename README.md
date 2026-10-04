@@ -8,18 +8,21 @@ Built from [aRDP / remote-desktop-clients](https://github.com/iiordanov/remote-d
 and FreeRDP. This is an independent app, not Microsoft Windows App, and is not
 affiliated with Microsoft or AYN.
 
-**0.1.0 is a preview.** Runtime testing used an Android x86_64 emulator with two
-displays and a real xrdp server. The ARM64 APK has not yet been run on physical
-AYN Thor hardware, and Windows/NLA authentication has not been tested.
+**0.1.1 is a preview.** This update fixes audio playback, local volume buttons,
+and the lower keyboard's physical-key encoding for host input methods such as
+EVKey. It also widens Space. Automated runtime testing uses an Android x86_64
+emulator with two displays and a real xrdp server; Windows EVKey and the updated
+ARM64 build still need confirmation on physical Thor hardware.
 
-[Download v0.1.0](https://github.com/Dasionz/thor-rdp/releases/tag/v0.1.0)
+[Download v0.1.1](https://github.com/Dasionz/thor-rdp/releases/tag/v0.1.1)
 · [Hướng dẫn tiếng Việt](docs/HUONG-DAN.md)
-· [QA report (Vietnamese)](docs/KIEM-TRA.md)
+· [QA report (Vietnamese)](docs/KIEM-TRA-0.1.1.md)
 · [Build instructions](THOR_BUILD.md)
 
 ## Install and connect
 
-1. Download `thor-rdp-0.1.0-arm64.apk` from the release and install it on your Thor.
+1. Download `thor-rdp-0.1.1-arm64.apk` from the release and install it on your Thor.
+   Install over 0.1.0 to retain saved connections; the package and signing key are unchanged.
 2. Open **Thor RDP** on the upper screen and add a manual connection.
 3. Enter your PC's address, RDP port, username, password, and domain if needed.
 4. Connect and check the server certificate before accepting it. The lower-screen
@@ -35,6 +38,14 @@ No root, Accessibility service, or Shizuku is needed for the custom controls.
 The lower keyboard sends PC key events directly to the RDP session; it does not
 open the Android keyboard or take keyboard focus from the upper desktop.
 For Vietnamese Telex/VNI input, enable the corresponding input method on the PC.
+With EVKey, select the English (US) keyboard layout in Windows and enable EVKey's
+Vietnamese Telex mode. The lower keyboard now sends RDP scancodes; the Android
+IME retains the existing Unicode input path.
+
+Audio defaults to playback on the Android device. Upgrading from 0.1.0 changes
+saved Disabled profiles to On Device once, because the old setup screen forced
+audio off. You can subsequently choose On Device, On Server, or Disabled in the
+connection's audio settings; that choice is retained.
 
 ## Controls
 
@@ -42,6 +53,7 @@ For Vietnamese Telex/VNI input, enable the corresponding input method on the PC.
 | --- | --- |
 | Left stick | Move the pointer, with slower movement near the center |
 | Right stick up/down | Scroll |
+| Hardware volume up/down | Adjust the Thor's media volume |
 | Android A | Hold/release the right mouse button |
 | Android B | Hold/release the left mouse button; hold while moving to drag |
 | A/B switch on the lower screen | Swap the mapping to match your firmware's button layout |
@@ -55,9 +67,9 @@ right-click, two-finger scrolling, and separate mouse buttons for dragging.
 If a suitable second display is unavailable, the main screen's keyboard button
 still provides the Android keyboard.
 
-![Lower-screen keyboard](docs/images/ban-phim-man-duoi.png)
+![Lower-screen keyboard](docs/images/ban-phim-0.1.1-240.png)
 
-*Lower-screen keyboard in the Android emulator.*
+*0.1.1 lower-screen keyboard with wider Space in the Android emulator.*
 
 ![RDP test desktop](docs/images/man-tren-kiem-tra.png)
 
@@ -70,12 +82,15 @@ The x86_64 release was tested for TLS certificate accept/reject, reconnect,
 lower-screen key input without changing upper-screen focus, joystick movement,
 A/B click down/up, modifiers, background/resume, and lower-display resizing.
 The ARM64 APK was checked with `apksigner` and `zipalign`; its runtime is untested.
+The 0.1.1 checks also verified an upgrade retaining saved profiles, real RDP audio
+at the Android output, local volume without remote scrolling, physical deck key
+events, and five input/audio migration instrumentation tests.
 
 - Physical Thor uses two internal displays; the emulator used a virtual second
   display. Display behavior, physical button labels, and long sessions need
   confirmation on hardware.
-- Windows authentication, NLA, Microsoft/Entra accounts, RD Gateway, audio,
-  microphone, and device redirection have not been verified.
+- Windows authentication, NLA, Microsoft/Entra accounts, RD Gateway, EVKey,
+  microphone, and device redirection have not been verified in our test setup.
 - Windows 365, Azure Virtual Desktop, and Windows App brokered sign-in are outside
   the scope of this direct-PC RDP preview.
 - The inherited prebuilt native stack is FreeRDP 2.11.7 and OpenSSL 1.1.1w. This
@@ -96,8 +111,8 @@ rebuild limitations are described in the build notes and
 [third-party notices](THIRD_PARTY_NOTICES.md).
 
 - Application ID: `dev.thor.freerdp`
-- Android version name: `0.1.0-thor`; version code: `1`
-- GitHub release tag: `v0.1.0`
+- Android version name: `0.1.1-thor`; version code: `2`
+- GitHub release tag: `v0.1.1`
 - Published APK ABI: `arm64-v8a`
 - Manifest minSdk: 21; target SDK: 36. Runtime QA used Android 14 / API 34 only;
   compatibility with older Android versions is unverified.

@@ -67,6 +67,7 @@ out/
 # Gradle files
 .gradle
 .gradle/
+.kotlin/
 build/
 
 # Signing files
@@ -223,6 +224,11 @@ venv
 
 # Local Thor dependency cache; source and build scripts remain distributable.
 .thor-cache/
+
+# Downloaded native/dependency binaries produced by thor-prepare.ps1.
+/bVNC/libs/
+*.aar
+*.so
 
 # Private local settings and signing material.
 .env
